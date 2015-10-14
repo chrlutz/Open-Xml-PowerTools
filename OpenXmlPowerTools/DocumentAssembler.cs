@@ -141,7 +141,8 @@ namespace OpenXmlPowerTools
                     contentBetween.DescendantsAndSelf(W.bookmarkStart).Remove();
                     contentBetween.DescendantsAndSelf(W.bookmarkEnd).Remove();
                     foreach (var item in contentBetween)
-                        item.Remove();
+                        if(item.Parent != null)
+                            item.Remove();
                     metadata.Add(contentBetween);
                     metadata.Attributes(PA.Depth).Remove();
                     matchingEnd.Remove();
