@@ -463,11 +463,11 @@ namespace OpenXmlPowerTools
                     XElement para = element.Descendants(W.p).FirstOrDefault();
                     XElement run = element.Descendants(W.r).FirstOrDefault();
 
-                    IEnumerable<XObject> selectedData;
+                    IEnumerable<object> selectedData;
                     string xPath = (string)element.Attribute(PA.Select);
                     try
                     {
-                        selectedData = ((IEnumerable)data.XPathEvaluate(xPath)).Cast<XObject>();
+                        selectedData = ((IEnumerable)data.XPathEvaluate(xPath)).Cast<object>();
                     }
                     catch (XPathException e)
                     {
@@ -477,7 +477,22 @@ namespace OpenXmlPowerTools
                         else
                             return errorRun;
                     }
-                    if (!selectedData.Any())
+
+                    StringBuilder stringResult = new StringBuilder();
+                    foreach (object c in selectedData)
+                    {
+                        if (c is Char)
+                        {
+                            stringResult.Append(c);
+                        }
+                        else
+                        {
+                            stringResult.Clear();
+                            break;
+                        }
+                    }
+
+                    if (!selectedData.Any() && stringResult.Length == 0)
                     {
                         var optionalString = (string)element.Attribute(PA.Optional);
                         if (optionalString != null && optionalString.ToLower() == "true")
@@ -493,7 +508,7 @@ namespace OpenXmlPowerTools
                                 return errorRun;
                         }
                     }
-                    else if (selectedData.Count() > 1)
+                    else if (selectedData.Count() > 1 && stringResult.Length == 0)
                     {
                         var errorRun = CreateRunErrorMessage(string.Format("Content XPath expression ({0}) returned more than one node", xPath), templateError);
                         if (para != null)
@@ -504,11 +519,13 @@ namespace OpenXmlPowerTools
                     else
                     {
                         string newValue = null;
-                        XObject selectedDatum = selectedData.First();
+                        object selectedDatum = selectedData.First();
                         if (selectedDatum is XElement)
                             newValue = ((XElement)selectedDatum).Value;
                         else if (selectedDatum is XAttribute)
                             newValue = ((XAttribute)selectedDatum).Value;
+                        else if (selectedDatum is Char)
+                            newValue = stringResult.ToString();
 
                         if (para != null)
                         {
