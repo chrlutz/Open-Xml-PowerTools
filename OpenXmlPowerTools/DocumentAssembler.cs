@@ -431,6 +431,7 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Repeat'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -585,6 +586,9 @@ namespace OpenXmlPowerTools
                 if (element.Name == PA.Repeat)
                 {
                     string selector = (string)element.Attribute(PA.Select);
+                    var optionalString = (string)element.Attribute(PA.Optional);
+                    bool optional = (optionalString != null && optionalString.ToLower() == "true");
+
                     IEnumerable<XElement> repeatingData;
                     try
                     {
@@ -595,7 +599,17 @@ namespace OpenXmlPowerTools
                         return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
                     }
                     if (!repeatingData.Any())
+                    {
+                        if (optional)
+                        {
+                            XElement para = element.Descendants(W.p).FirstOrDefault();
+                            if (para != null)
+                                return new XElement(W.p, new XElement(W.r));
+                            else
+                                return new XElement(W.r);
+                        }
                         return CreateContextErrorMessage(element, "Repeat: Select returned no data", templateError);
+                    }
                     var newContent = repeatingData.Select(d =>
                         {
                             var content = element
@@ -778,7 +792,6 @@ namespace OpenXmlPowerTools
         private static XElement CreateContextErrorMessage(XElement element, string errorMessage, TemplateError templateError)
         {
             XElement para = element.Descendants(W.p).FirstOrDefault();
-            XElement run = element.Descendants(W.r).FirstOrDefault();
             var errorRun = CreateRunErrorMessage(errorMessage, templateError);
             if (para != null)
                 return new XElement(W.p, errorRun);
