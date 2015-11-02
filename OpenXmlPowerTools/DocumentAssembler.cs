@@ -362,6 +362,7 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Repeat'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -546,6 +547,9 @@ namespace OpenXmlPowerTools
                 if (element.Name == PA.Repeat)
                 {
                     string selector = (string)element.Attribute(PA.Select);
+                    var optionalString = (string)element.Attribute(PA.Optional);
+                    bool optional = (optionalString != null && optionalString.ToLower() == "true");
+
                     IEnumerable<XElement> repeatingData;
                     try
                     {
@@ -556,7 +560,11 @@ namespace OpenXmlPowerTools
                         return CreateParaErrorMessage("XPathException: " + e.Message, templateError);
                     }
                     if (!repeatingData.Any())
+                    {
+                        if (optional)
+                            return new XElement(W.p, new XElement(W.r));
                         return CreateParaErrorMessage("Repeat: Select returned no data", templateError);
+                    }
                     var newContent = repeatingData.Select(d =>
                         {
                             var content = element
