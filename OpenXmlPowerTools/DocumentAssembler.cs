@@ -586,17 +586,30 @@ namespace OpenXmlPowerTools
 
                         if (para != null)
                         {
-                            return new XElement(W.p,
-                                para.Elements(W.pPr),
-                                new XElement(W.r,
+                            XElement p = new XElement(W.p, para.Elements(W.pPr));
+                            foreach(string line in newValue.Split('\n'))
+                            {
+                                if(p.Elements().Count() > 1)
+                                    p.Add(new XElement(W.br));
+                                p.Add(new XElement(W.r,
                                     para.Elements(W.r).Elements(W.rPr).FirstOrDefault(),
-                                    new XElement(W.t, newValue)));
+                                    new XElement(W.t, line)));
+                            }
+                            return p;
                         }
                         else
                         {
-                            return new XElement(W.r,
-                                run.Elements().Where(e => e.Name != W.t),
-                                new XElement(W.t, newValue));
+                            List<XElement> list = new List<XElement>();
+                            foreach(string line in newValue.Split('\n'))
+                            {
+                                if (list.Count > 0)
+                                    list.Add(new XElement(W.br));
+                                list.Add(new XElement(W.r,
+                                    run.Elements().Where(e => e.Name != W.t),
+                                    new XElement(W.t, line))
+                                );
+                            }
+                            return list;
                         }
                     }
                 }
