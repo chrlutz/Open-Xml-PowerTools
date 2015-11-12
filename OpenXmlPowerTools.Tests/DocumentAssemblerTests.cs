@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -146,6 +147,21 @@ namespace OxPt
             }
 
             Assert.Equal(err, returnedTemplateError);
+        }
+
+        [Theory]
+        [InlineData("DA257-MultiLineContents.docx", "DA-Data.xml", false)]
+        public void DA257(string name, string data, bool err)
+        {
+            DA101(name, data, err);
+            var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
+            WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
+            int brCount = afterAssembling.MainDocumentPart
+                            .Element(W.body)
+                            .Elements(W.p).ElementAt(1)
+                            .Elements(W.r)
+                            .Elements(W.br).Count();
+            Assert.Equal(4, brCount);
         }
 
         [Theory]
