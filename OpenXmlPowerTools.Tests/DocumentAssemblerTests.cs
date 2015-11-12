@@ -108,6 +108,7 @@ namespace OxPt
         [InlineData("DA251-EnhancedTables.docx", "DA-Data.xml", false)]
         [InlineData("DA252-Table-With-Sum.docx", "DA-Data.xml", false)]
         [InlineData("DA253-Table-With-Sum-Run-Level-CC.docx", "DA-Data.xml", false)]
+        [InlineData("DA254-NoInvalidDocOnErrorInRun.docx", "DA-Data.xml", true)]
         
         public void DA101(string name, string data, bool err)
         {
